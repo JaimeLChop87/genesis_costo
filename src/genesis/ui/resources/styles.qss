@@ -1,0 +1,41 @@
+
+
+
+/*Estilos generales main_windows */
+#MainWidget {
+    background-color: rgb(231, 219, 219);
+}   
+
+
+/* Cabecera */
+#HeaderFrame {
+    background-color: rgb(231, 219, 219);
+    border-bottom: 1px solid #e0e0e0;
+}
+
+#NavButton {
+    background-color: transparent;
+    color: #004d40;
+    font-weight: bold;
+    border: none;
+    padding: 10px;
+}
+
+#NavButton:hover {
+    color: #00c853;
+}
+
+/* Botón Versión Gratis */
+#BtnPremium {
+    background-color: #004d40;
+    color: white;
+    border-radius: 15px;
+    padding: 8px 20px;
+}
+
+/* Caja de Login */
+#LoginCard {
+    background-color:  rgb(231, 219, 219);
+    border: 1px solid #dcdcdc;
+    border-radius: 20px;
+}
