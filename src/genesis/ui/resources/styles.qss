@@ -3,14 +3,14 @@
 
 /*Estilos generales main_windows */
 #MainWidget {
-    background-color: rgb(231, 219, 219);
+    background-color: rgb(228, 217, 217);
 }   
 
 
 /* Cabecera */
 #HeaderFrame {
-    background-color: rgb(231, 219, 219);
-    border-bottom: 1px solid #e0e0e0;
+    background-color: rgb(228, 217, 217);
+    border-bottom: 1px solid #004d40;
 }
 
 #NavButton {
@@ -25,17 +25,53 @@
     color: #00c853;
 }
 
-/* Botón Versión Gratis */
-#BtnPremium {
+/*boton Premium */
+/* Estado Normal */
+#BtnPremium , #BtnAcceder {
     background-color: #004d40;
     color: white;
     border-radius: 15px;
     padding: 8px 20px;
+    border: none;
+}
+
+/* Estado Hover (Al pasar el mouse) */
+#BtnPremium:hover , #BtnAcceder:hover {
+    background-color: #0b9fbd; /* Invertimos o aclaramos para dar feedback */
+    border-color: #0B4493;           /* Texto en verde brillante */
+}
+
+/* Estado Pressed (Al hacer clic/mantener presionado) */
+#BtnPremium:pressed, #BtnAcceder:pressed {
+    background-color: #026C19; /* El verde que elegiste */
+    border-color: #004d40;
+}
+#LoginLayout {
+    background-color: transparent;
+    border-radius: 20px;
+    padding: 20px;
 }
 
 /* Caja de Login */
 #LoginCard {
-    background-color:  rgb(231, 219, 219);
-    border: 1px solid #dcdcdc;
+    background-color: rgb(228, 217, 217);
+    border: 1px solid #004d40;
     border-radius: 20px;
 }
+
+#LoginLabel {
+    color: #004d40;
+    font-size: 12px;
+    font-weight: extra-light;
+    margin-bottom: 20px;
+}
+
+#LoginInput {
+    background-color: #ECF0F1;
+    border: 1px solid #CACACA;
+    color: #004d40;
+    border-radius: 16px;
+    padding: 8px;
+    font-size: 14px;
+}
+
