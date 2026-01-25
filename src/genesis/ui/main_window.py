@@ -1,7 +1,9 @@
 from PyQt6.QtWidgets import (QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, 
                              QPushButton, QLabel, QFrame, QStackedWidget)
 from PyQt6.QtCore import Qt, QSize
-from PyQt6.QtGui import QPixmap, QMovie
+from PyQt6.QtGui import QPixmap, QMovie, QIcon
+
+
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -12,10 +14,18 @@ class MainWindow(QMainWindow):
         # Widget Central
         self.main_widget = QWidget()
         self.main_widget.setObjectName("MainWidget")
+        self.setWindowIcon(QIcon("src/genesis/ui/resources/icons/favicon.ico"))
         self.setCentralWidget(self.main_widget)
         self.layout_principal = QVBoxLayout(self.main_widget)
         self.layout_principal.setContentsMargins(0, 0, 0, 0)
         self.layout_principal.setSpacing(0)
+        self.main_widget.setStyleSheet("""
+        #MainWidget {
+        border-image: url("src/genesis/ui/resources/images/ImagenFondoMainWindows.jpg") 0 0 0 0 stretch stretch;
+        background-repeat: no-repeat;
+        background-position: center;
+            }
+        """)
 
         self.setup_header()
         self.setup_content_area()
