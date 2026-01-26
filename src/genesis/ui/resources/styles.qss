@@ -18,7 +18,7 @@
     color: #004d40;
     font-weight: bold;
     border: none;
-    padding: 10px;
+    padding: 4px;
 }
 
 #NavButton:hover {
@@ -31,7 +31,7 @@
     background-color: #004d40;
     color: white;
     border-radius: 15px;
-    padding: 8px 20px;
+    padding: 8px 8px;
     border: none;
 }
 
@@ -49,7 +49,7 @@
 #LoginLayout {
     background-color: transparent;
     border-radius: 20px;
-    padding: 20px;
+    padding: 8px;
 }
 
 /* Caja de Login */
@@ -67,7 +67,7 @@
 }
 
 #LoginInput {
-    background-color: #ECF0F1;
+    background-color: rgb(228, 217, 217);
     border: 1px solid #CACACA;
     color: #004d40;
     border-radius: 16px;

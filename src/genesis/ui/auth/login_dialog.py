@@ -6,13 +6,12 @@ class LoginDialog(QDialog):
         super().__init__(parent)
         self.setObjectName("LoginCard")
         self.setWindowTitle("Acceso - Génesis")
-        self.setFixedSize(400, 400)
+        self.setFixedSize(400, 300)
         self.init_ui_login()
 
     def init_ui_login(self):
         # Layout principal
         self.layout_login = QVBoxLayout(self)
-        self.layout_login.setSpacing(10)
         self.layout_login.setObjectName("LoginLayout")
 
         # --- SECCIÓN: USUARIO ---
@@ -37,25 +36,26 @@ class LoginDialog(QDialog):
         self.btn_acceder.setObjectName("BtnAcceder")
         self.btn_acceder.clicked.connect(self.procesar_login) # Conexión funcional
 
-        self.btn_google = QPushButton("Continuar con Google")
-        self.btn_google.setObjectName("BtnGoogle")
+        self.lbl_tiene_cuenta = QLabel("¿No tienes una cuenta?")
+        self.lbl_tiene_cuenta.setObjectName("LoginLabel")
+        self.lbl_tiene_cuenta.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-        self.lbl_crear_cuenta = QLabel("¿No tienes una cuenta? Crear Cuenta")
-        self.lbl_crear_cuenta.setObjectName("LoginLabel")
+        self.lbl_crear_cuenta = QLabel("Crear Cuenta")
+        self.lbl_crear_cuenta.setObjectName("NavButton")
         self.lbl_crear_cuenta.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         # --- AGREGAR AL LAYOUT ---
         self.layout_login.addWidget(self.lbl_user)
         self.layout_login.addWidget(self.input_user)
-        self.layout_login.addSpacing(10)
+        self.layout_login.addSpacing(4)
         self.layout_login.addWidget(self.lbl_pass)
         self.layout_login.addWidget(self.input_pass)
-        self.layout_login.addSpacing(20)
+        self.layout_login.addSpacing(4)
         self.layout_login.addWidget(self.btn_acceder)
-        self.layout_login.addSpacing(15)
-        self.layout_login.addWidget(self.btn_google)
-        self.layout_login.addStretch() # Empuja todo hacia arriba
+        self.layout_login.addSpacing(4)
+        #self.layout_login.addStretch() # Empuja todo hacia arriba
         self.layout_login.addWidget(self.lbl_crear_cuenta)
+        self.layout_login.addSpacing(4)
 
 
     def procesar_login(self):
