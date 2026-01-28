@@ -34,5 +34,30 @@ class DatabaseMaestro:
                 )
             ''')
             
+    def verify_user_credentials(self, username, password_hash):
+               # conexion con la base de datos
+        conn = self.get_connection()
+        if conn is None:
+                return False
+
+        try:
+            cursor = conn.cursor()
+            query = "SELECT 1 FROM users WHERE username = ? AND password_hash = ?"
+            cursor.execute(query, (username, password_hash))
             
-database = DatabaseMaestro()
+            # Obtenemos el resultado de inmediato
+            user = cursor.fetchone()
+            
+            # Cerramos el cursor
+            cursor.close()
+            
+            # Retornamos la comparación lógica directamente
+            return user is not None
+
+        except Exception as e:
+            print(f"Error en la consulta: {e}")
+            return False
+        finally:
+            # Nos aseguramos de cerrar la conexión SIEMPRE
+            if conn:
+                conn.close()

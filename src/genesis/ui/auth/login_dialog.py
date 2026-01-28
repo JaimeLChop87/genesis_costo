@@ -1,5 +1,8 @@
-from PyQt6.QtWidgets import QDialog, QVBoxLayout, QLabel, QLineEdit, QPushButton, QHBoxLayout
+from PyQt6.QtWidgets import QDialog, QVBoxLayout, QLabel, QLineEdit, QPushButton, QHBoxLayout,QMessageBox
 from PyQt6.QtCore import Qt
+
+from genesis.data.database import DatabaseMaestro
+
 
 class LoginDialog(QDialog):
     def __init__(self, parent=None):
@@ -8,6 +11,7 @@ class LoginDialog(QDialog):
         self.setWindowTitle("Acceso - Génesis")
         self.setFixedSize(400, 300)
         self.init_ui_login()
+        self.db_maestro = DatabaseMaestro()
 
     def init_ui_login(self):
         # Layout principal
@@ -62,10 +66,13 @@ class LoginDialog(QDialog):
         # Aquí validas los datos
         usuario = self.input_user.text()
         password = self.input_pass.text()
-
-        if usuario == "admin" and password == "1234":
-            print("Credenciales correctas")
-            self.accept()  # Cierra el diálogo y devuelve '1'
+# 1. Validación básica: ¿Están vacíos?
+        if not usuario or not password:
+            QMessageBox.warning(self, "Campos Vacíos", "Por favor, completa todos los campos.")
+            return 
+        if self.db_maestro.verify_user_credentials(usuario, password):
+            print("Acceso concedido")
+            self.accept() 
         else:
             print("Error de acceso")
             self.input_pass.clear()

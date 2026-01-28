@@ -1,0 +1,3 @@
+admin_jaime	jaime@nikia.com	Nikia2026!	Administrador
+ing_costos	costos@nikia.com	Nikia2026!	Ingeniero
+invitado_01	visita@nikia.com	Nikia2026!	Consulta

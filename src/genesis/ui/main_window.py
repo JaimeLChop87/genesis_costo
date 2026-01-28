@@ -81,7 +81,6 @@ class MainWindow(QMainWindow):
         self.content_stack.addWidget(self.promo_widget)
         self.layout_principal.addWidget(self.content_stack)
         
-
     def login_user(self):
         # 1. Instanciamos el diálogo pasando 'self' (MainWindow) como padre
         ventana_login = LoginDialog(self)
@@ -94,7 +93,6 @@ class MainWindow(QMainWindow):
         if resultado == QDialog.DialogCode.Accepted:
             # Si el usuario puso bien sus datos y se ejecutó self.accept()
             print("El usuario ha iniciado sesión correctamente.")
-            self.actualizar_interfaz_privada() # Función que podrías crear
         else:
             # Si el usuario cerró el diálogo sin loguearse
             print("Login cancelado o fallido.")

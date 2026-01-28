@@ -1,0 +1,20 @@
+[
+  {
+    "username": "admin_01",
+    "email": "admi@nikia.com",
+    "password_hash": "12345",
+    "rol": "Administrador"
+  },
+  {
+    "username": "costos",
+    "email": "costos@nikia.com",
+    "password_hash": "12345",
+    "rol": "Ingeniero"
+  },
+  {
+    "username": "visitante",
+    "email": "visitante@nikia.com",
+    "password_hash": "12345",
+    "rol": "Consulta"
+  }
+]
