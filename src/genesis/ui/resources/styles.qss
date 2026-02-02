@@ -1,18 +1,29 @@
 
 
-
+/* estilos y temas generales de la aplicacion */
 /*Estilos generales main_windows */
 #MainWidget {
     background-color: rgb(228, 217, 217);
-}   
+} 
+
+#MainDashboard {
+    background-color:#D9D9D9;
+}
 
 
+/* estilos de cabeceras y botones de navegacion  */
 /* Cabecera */
 #HeaderFrame {
     background-color: rgb(228, 217, 217);
     border-bottom: 1px solid #004d40;
 }
 
+#HeaderFrameDashBoard {
+    background-color: rgb(228, 217, 217);
+    border-bottom: 1px solid #004d40;
+}
+
+/* Menu de navegacion superior */
 #NavButton {
     background-color: transparent;
     color: #004d40;
@@ -24,6 +35,16 @@
 #NavButton:hover {
     color: #00c853;
 }
+
+#NavButtonDashboard {
+    background-color: transparent;
+    color: #004d40;
+    font-weight: bold;
+    border-bottom: 1px solid #0b9fbd;
+    padding: 4px;
+}
+
+
 
 /*boton Premium */
 /* Estado Normal */
@@ -37,15 +58,21 @@
 
 /* Estado Hover (Al pasar el mouse) */
 #BtnPremium:hover , #BtnAcceder:hover {
-    background-color: #0b9fbd; /* Invertimos o aclaramos para dar feedback */
-    border-color: #0B4493;           /* Texto en verde brillante */
+    background-color: #0b9fbd; 
+    border-color: #0B4493;         
 }
 
 /* Estado Pressed (Al hacer clic/mantener presionado) */
 #BtnPremium:pressed, #BtnAcceder:pressed {
-    background-color: #026C19; /* El verde que elegiste */
+    background-color: #026C19; 
     border-color: #004d40;
 }
+
+#BtnToggleHeader {
+    color: #0B4493;
+    border-color: #01FF38;
+}
+
 #LoginLayout {
     background-color: transparent;
     border-radius: 20px;
@@ -75,3 +102,40 @@
     font-size: 14px;
 }
 
+#TopMenuButton {
+    background-color: transparent;
+    color: #004d40;
+    font-weight: bold;
+    border: none;
+}
+
+
+#Userinfocard {
+    color: #004d40;
+    font-size: 12px;
+    font-weight: lighter;
+    }
+
+
+
+    /* El contenedor del Sidebar */
+#SidebarFrame {
+    background-color: rgba(0, 77, 64, 51); 
+    border-right: 1px solid rgba(0, 77, 64, 50);
+    border-top-right-radius: 8px;
+    border-bottom-right-radius: 8px;
+}
+
+#SidebarButton {
+    background-color: transparent;
+    color: #004d40;
+    text-align: left;
+    padding: 10px 15px;
+    border: none;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    font-size: 14px;
+}
+
+#SidebarButton:hover {
+    color: #00c853;
+}
