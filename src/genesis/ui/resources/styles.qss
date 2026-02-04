@@ -7,8 +7,9 @@
 } 
 
 #MainDashboard {
-    background-color:#D9D9D9;
+    background-color:white;
 }
+
 
 
 /* estilos de cabeceras y botones de navegacion  */
@@ -48,7 +49,7 @@
 
 /*boton Premium */
 /* Estado Normal */
-#BtnPremium , #BtnAcceder {
+#BtnPremium , #BtnAcceder, #BtnGuardar {
     background-color: #004d40;
     color: white;
     border-radius: 15px;
@@ -57,7 +58,7 @@
 }
 
 /* Estado Hover (Al pasar el mouse) */
-#BtnPremium:hover , #BtnAcceder:hover {
+#BtnPremium:hover , #BtnAcceder:hover, #BtnGuardar:hover {
     background-color: #0b9fbd; 
     border-color: #0B4493;         
 }
@@ -90,10 +91,17 @@
     color: #004d40;
     font-size: 12px;
     font-weight: extra-light;
-    margin-bottom: 20px;
+    margin-bottom: 8px;
 }
 
-#LoginInput {
+#LabelForm {
+    color: #004d40;
+    font-size: 14px;
+    font-weight: lighter;
+    margin-bottom: 8px;
+}
+
+#LoginInput, #InputForm {
     background-color: rgb(228, 217, 217);
     border: 1px solid #CACACA;
     color: #004d40;
@@ -139,3 +147,35 @@
 #SidebarButton:hover {
     color: #00c853;
 }
+
+#FormCard {
+    background-color: white;
+    border-radius: 8px;
+    padding: 4px;
+    
+}
+
+#SeparadorHorizontal {
+    background-color:  #0b9fbd;
+    color: #0b9fbd;
+    border: none;
+    border-top: 2px #00c853 solid; 
+    margin-top: 4px;
+    margin-bottom: 4px;
+    max-height: 2px;
+}
+
+
+QTableWidget {
+    border-radius: 10px;
+    gridline-color: white;
+}
+
+QHeaderView::section {
+    background-color: #00c853;
+    color: #004d40;
+    font-weight: bold;
+    border: none;
+    padding: 5px;
+}
+

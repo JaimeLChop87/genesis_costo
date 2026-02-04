@@ -5,6 +5,8 @@ from PyQt6.QtWidgets import (QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
 from PyQt6.QtCore import Qt, QSize, QEvent
 from PyQt6.QtGui import QPixmap, QIcon
 
+from genesis.ui.modules.maestro_crisol.maestro_views import TipoCostoView
+
 
 class DashboardView(QMainWindow):
     def __init__(self, user_data=None):
@@ -225,6 +227,9 @@ class DashboardView(QMainWindow):
         new_window_widget = QWidget() 
         layout = QVBoxLayout(new_window_widget)
         layout.addWidget(QLabel(f"Contenido de: {window_title}")) 
+        if window_title == "Tipos Costo":
+            new_window_widget = TipoCostoView()
+        
         
         # 3. Registrar en el sistema
         idx = self.work_space.addWidget(new_window_widget)
