@@ -10,8 +10,6 @@ class LoginDialog(QDialog):
         self.db_maestro = DatabaseMaestro()
         self.init_ui_login()
         
-
-
     def init_ui_login(self):
         # parametros generales venata login
         self.setObjectName("LoginCard")
@@ -70,8 +68,6 @@ class LoginDialog(QDialog):
         self.layout_login.addStretch() # Empuja todo hacia arriba
         self.layout_login.addWidget(self.lbl_tiene_cuenta)
         self.layout_login.addWidget(self.lbl_crear_cuenta)
-
-
 
     def procesar_login(self):
         # 0.datos de entrada usuario

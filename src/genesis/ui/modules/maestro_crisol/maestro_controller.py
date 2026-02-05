@@ -14,7 +14,7 @@ class TipoCostoController:
             with sqlite3.connect(self.db_manager.db_path) as conn:
                 cursor = conn.cursor()
                 cursor.execute(
-                    "INSERT INTO tipocosto (cod, descripcion) VALUES (?, ?)",
+                    "INSERT INTO tipocosto (cod_tipo_costo, descripcion_tipo_costo) VALUES (?, ?)",
                     (cod.upper().strip(), descripcion.upper().strip())
                 )
                 conn.commit()
@@ -29,7 +29,7 @@ class TipoCostoController:
         try:
             with sqlite3.connect(self.db_manager.db_path) as conn:
                 cursor = conn.cursor()
-                cursor.execute("SELECT id, cod, descripcion FROM tipocosto ORDER BY id DESC")
+                cursor.execute("SELECT cod_tipo_costo, descripcion_tipo_costo FROM tipocosto ORDER BY id DESC")
                 return cursor.fetchall()
         except Exception:
             return []
