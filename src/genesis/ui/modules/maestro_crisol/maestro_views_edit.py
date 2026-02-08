@@ -53,7 +53,6 @@ class GenericEditDialog(QDialog):
         self.btn_cancel.clicked.connect(self.reject)
         self.btn_save.clicked.connect(self.validate_and_accept)
         
-
     def validate_and_accept(self):
         # Validación básica: que ningún campo esté vacío
         for name, input_field in self.inputs.items():

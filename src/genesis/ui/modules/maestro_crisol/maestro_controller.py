@@ -1,4 +1,5 @@
 import sqlite3
+from PyQt6.QtCore import QObject, pyqtSignal
 from genesis.data.database import DatabaseMaestro
 
 class TipoCostoController:
@@ -52,3 +53,96 @@ class TipoCostoController:
         except Exception as e:
             return False, f"Error inesperado: {str(e)}"
 
+    def guardar_plantilla_maestro(self, nom, cod, tipo_costo, nivel):
+        """ valida la informacion en formulario inserta nuevo registro"""
+
+        if not cod or not nom or tipo_costo is None or nivel is None:
+            return False, "Todos los campos son obligatorios."
+
+        # 2. Validación de límites (evita que el error salte recién en la DB)
+        if len(nom) > 100:
+            return False, "La descripción es demasiado larga (máx 100)."
+        if len(cod) > 5:
+            return False, "El código es demasiado largo (máx 5)."
+        # 3. Validación de tipos
+        try:
+            nivel = int(nivel)
+            tipo_costo = int(tipo_costo)
+        except (ValueError, TypeError):
+            return False, "Los valores de nivel y tipo de costo deben ser numéricos."
+
+        try:
+            # Usamos el administrador de conexión para asegurar que se cierre
+            with self.db_manager.get_connection() as conn:
+                cursor = conn.cursor()
+                query = '''
+                    INSERT INTO plantillamaestro (
+                        descripcion_plantilla_maestro, 
+                        cod_plantilla_maestro, 
+                        nivel_jerarquia, 
+                        id_tipo_costo
+                    ) VALUES (?, ?, ?, ?)
+                '''
+                cursor.execute(query, (nom.upper(), cod, nivel, tipo_costo))
+                conn.commit()
+                return True, "Registro guardado exitosamente."
+
+        except sqlite3.IntegrityError as e:
+            # Error específico si el código o descripción ya existen (por el UNIQUE)
+            return False, "Error de duplicidad: El código o la descripción ya están registrados."
+        except Exception as e:
+            return False, f"Error en la base de datos: {str(e)}"
+    
+    def obtener_plantilla_maestro(self):
+        """Consulta todos los registros para llenar la tabla muestra plantilla amestro."""
+        try:
+            with sqlite3.connect(self.db_manager.db_path) as conn:
+                cursor = conn.cursor()
+                cursor.execute("SELECT id_plantilla_maestro, descripcion_plantilla_maestro, cod_plantilla_maestro, nivel_jerarquia, id_tipo_costo FROM plantillamaestro ORDER BY descripcion_plantilla_maestro DESC")
+                return cursor.fetchall()
+        except Exception:
+            return []
+    
+    def encontrar_nivel_id_db(self, id_db):
+        """Consulta el registro equivalente id_db en tabla"""
+        try:
+            with sqlite3.connect(self.db_manager.db_path) as conn:
+                cursor = conn.cursor()
+                query = "SELECT cod_nivel FROM nivelestructuramaestro WHERE id_nivel_estr = ?"
+                cursor.execute(query, (id_db,))
+                
+                resultado = cursor.fetchone() 
+                
+                # Si encontró algo, devuelve el primer elemento de la tupla, 
+                # de lo contrario devuelve un texto por defecto.
+                return resultado[0]
+                
+        except Exception as e:
+            print(f"Error consultando nivel: {e}")
+            return "Error"     
+
+    def encontrar_tipocosto_id_db(self, id_db):
+        """Consulta el registro equivalente id_db en tabla"""
+        try:
+            with sqlite3.connect(self.db_manager.db_path) as conn:
+                cursor = conn.cursor()
+                query = "SELECT cod_tipo_costo FROM tipocosto WHERE id_tipo_costo = ?"
+                cursor.execute(query, (id_db,))
+                
+                resultado = cursor.fetchone() 
+                
+                # Si encontró algo, devuelve el primer elemento de la tupla, 
+                # de lo contrario devuelve un texto por defecto.
+                return resultado[0]
+                
+        except Exception as e:
+            print(f"Error consultando nivel: {e}")
+            return "Error"  
+
+
+class Comunicador(QObject):
+    # Definimos la señal que avisa que los Tipos de Costo cambiaron
+    tipos_actualizados = pyqtSignal()
+
+# Instancia única para toda la aplicación
+comun = Comunicador()

@@ -5,6 +5,7 @@ from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QGuiApplication
 
 from genesis.ui.modules.maestro_crisol.maestro_controller import TipoCostoController
+from genesis.ui.modules.maestro_crisol.maestro_controller import comun
 from genesis.ui.modules.maestro_crisol.maestro_views_edit import GenericEditDialog
 
 class GeneralWidget():
@@ -221,6 +222,7 @@ class TipoCostoView(QWidget, GeneralWidget):
                 # Opcional: mostrar mensaje de éxito
                 # QMessageBox.information(self, "Éxito", mensaje)
                 self.cargar_datos() # Refrescar la tabla para ver los cambios
+                comun.tipos_actualizados.emit()
             else:
                 # Mostrar el error (por ejemplo, si el código ya existe)
                 QMessageBox.critical(self, "Error de Actualización", mensaje)
@@ -231,8 +233,9 @@ class PlantillaMaestraViews(QWidget, GeneralWidget):
         super().__init__()
         self.controller = TipoCostoController()
         self.init_ui_plantilla_maestro()
-        self.init_line_divider()
-        self.init_table_resgistroplanillamaestro()
+        self.cargar_datos_plantillamaestro()
+        
+        comun.tipos_actualizados.connect(self.cargar_datos_plantillamaestro)
     
     def init_ui_plantilla_maestro(self):
         layout = QVBoxLayout(self)
@@ -243,7 +246,7 @@ class PlantillaMaestraViews(QWidget, GeneralWidget):
         
         layout.addWidget(self.form_card)
         layout.addWidget(self.linea_divisora)
-        layout.addWidget(self.tabla)
+        layout.addWidget(self.tablaplanilla)
         
         layout.addStretch()
         
@@ -303,67 +306,68 @@ class PlantillaMaestraViews(QWidget, GeneralWidget):
         self.combobox_tipo_costo.addItem("Seleccione un tipo...", None)
         
         try:
-            if not hasattr(self, 'tipo_costo_controller'):
-                self.tipo_costo_controller = TipoCostoController()
+            tipo_costos = self.controller.obtener_tipocosto()
+            if not tipo_costos: return
 
-            tipo_costos = self.tipo_costo_controller.obtener_tipocosto()
+            self.combobox_tipo_costo.clear()
+            self.combobox_tipo_costo.addItem("Seleccione un tipo...", None)
 
-            if not tipo_costos:
-                return
-
-            opciones = [f"{tc[2]} - {tc[1]}" for tc in tipo_costos]
-            
-            # 3. Bloquear señales para evitar disparar eventos innecesarios durante la carga
-            self.combobox_tipo_costo.blockSignals(True)
-            self.combobox_tipo_costo.addItems(opciones)
-            self.combobox_tipo_costo.blockSignals(False)
-            
+            for tc in tipo_costos:
+                # tc[0] es el ID, tc[1] descripción, tc[2] código
+                label = f"{tc[2]} - {tc[1]}"
+                id_real = tc[0] 
+                # IMPORTANTE: addItem(texto, data)
+                self.combobox_tipo_costo.addItem(label, id_real) 
+                
             self.combobox_tipo_costo.setFixedWidth(200)
-            
             return self.combobox_tipo_costo
-            
         except Exception as e:
-            print(f"Error al cargar tipos de costo: {e}")
+            print(f"Error: {e}")
                 
     def combobox_nivel_estructura(self):   
             # 1.4 selccion niveles jerarquia agrupadores de la palntilla maestra
         self.txt_nivel = QLabel('Niveles - Jerarquias')
-        self.txt_nivel.setObjectName("LabelForm")
-        self.combobox_nivelplantila=QComboBox()
-        #self.combobox_nivelplantila.setObjectName("list_box")
-        self.combobox_nivelplantila.addItems(['Nivel - 1',
-                                              'Nivel - 2',
-                                              'Nivel - 3',
-                                              'Nivel - 4',
-                                              'Nivel - 5'])     
+        self.combobox_nivelplantila = QComboBox()
+        
+        niveles = [
+            ("Nivel - 1", 1),
+            ("Nivel - 2", 2),
+            ("Nivel - 3", 3),
+            ("Nivel - 4", 4),
+            ("Nivel - 5", 5)
+        ]
+        
+        for texto, valor in niveles:
+            self.combobox_nivelplantila.addItem(texto, valor)
+            
         self.combobox_nivelplantila.setFixedWidth(150)
         return self.combobox_nivelplantila
 
-    def init_table_resgistroplanillamaestro (self):
+    def init_table_resgistroplanillamaestro(self):
         """ Inicializa la tabla resultado busqueda todos las plantillas maestros."""
                 # --- TABLA DE REGISTROS ---
-        self.tabla = QTableWidget()
-        self.tabla.setColumnCount(5)
-        self.tabla.setObjectName("TablaRegistros")
-        self.tabla.setHorizontalHeaderLabels(["edit","Código","Descripcion PlanillaMaestro","Nivel","Tipo costo"])
+        self.tablaplanilla = QTableWidget()
+        self.tablaplanilla.setColumnCount(5)
+        self.tablaplanilla.setObjectName("TablaRegistros")
+        self.tablaplanilla.setHorizontalHeaderLabels(["edit","Código","Descripcion PlanillaMaestro","Nivel","Tipo costo"])
     # --- PERMITIR SELECCIÓN Y COPIADO ---
         # Permite seleccionar celdas individuales o filas completas
-        self.tabla.setSelectionMode(QTableWidget.SelectionMode.ExtendedSelection)
-        self.tabla.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows) # Selecciona filas completas
-        self.tabla.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
+        self.tablaplanilla.setSelectionMode(QTableWidget.SelectionMode.ExtendedSelection)
+        self.tablaplanilla.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows) # Selecciona filas completas
+        self.tablaplanilla.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
         # 2. Política de Foco (CAMBIO CLAVE)
         # Cambia NoFocus por StrongFocus o elimina la línea
-        self.tabla.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
-        self.tabla.setTabKeyNavigation(True)
+        self.tablaplanilla.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
+        self.tablaplanilla.setTabKeyNavigation(True)
         
         # configuracion de ancho de columnas específicas
-        header = self.tabla.horizontalHeader()
+        header = self.tablaplanilla.horizontalHeader()
         
-        self.tabla.setColumnWidth(0, 50)   
-        self.tabla.setColumnWidth(1, 80) 
-        self.tabla.setColumnWidth(2, 300) 
-        self.tabla.setColumnWidth(3, 100)
-        self.tabla.setColumnWidth(4, 100)
+        self.tablaplanilla.setColumnWidth(0, 50)   
+        self.tablaplanilla.setColumnWidth(1, 80) 
+        self.tablaplanilla.setColumnWidth(2, 300) 
+        self.tablaplanilla.setColumnWidth(3, 100)
+        self.tablaplanilla.setColumnWidth(4, 100)
         
         header.setSectionResizeMode(0, QHeaderView.ResizeMode.Fixed)
         header.setSectionResizeMode(1, QHeaderView.ResizeMode.Fixed)
@@ -371,14 +375,73 @@ class PlantillaMaestraViews(QWidget, GeneralWidget):
         header.setSectionResizeMode(3, QHeaderView.ResizeMode.Fixed)
         header.setSectionResizeMode(4, QHeaderView.ResizeMode.Fixed)
         # Estética
-        self.tabla.verticalHeader().setVisible(False)
-        self.tabla.setShowGrid(False)
+        self.tablaplanilla.verticalHeader().setVisible(False)
+        self.tablaplanilla.setShowGrid(False)
         
-    def handle_guardar_platillamaestro (self):
-        cod = self.txt_codigo.text().strip()
-        desc = self.txt_descripcion.text().strip()
+    def handle_guardar_platillamaestro(self):
+        cod = self.txt_codigo.text().strip().upper()
+        nom = self.txt_descripcion.text().strip().upper()
         nivel = self.combobox_nivelplantila.currentData()
-        t_costo = self.combobox_tipo_costo.currentData()
+        tipo_costo = self.combobox_tipo_costo.currentData()
+
+        try:
+            exito, mensaje = self.controller.guardar_plantilla_maestro(nom, cod, tipo_costo, nivel)
+            if exito:
+                # Limpiar campos y refrescar tabla
+                self.txt_codigo.clear()
+                self.txt_descripcion.clear()
+                self.cargar_datos_plantillamaestro()
+                QMessageBox.information(self, "Éxito", mensaje)
+            else:
+                QMessageBox.critical(self, "Error de Validación", mensaje)
+                
+        except Exception as e:
+            # Error técnico no controlado
+            QMessageBox.critical(self, "Error del Sistema", f"Ocurrió un error inesperado: {str(e)}")
         
-        print(f"{cod}-{desc}\n-{nivel}\n-{t_costo}")
+        finally:
+            # 5. Siempre rehabilitar el botón al terminar el proceso
+            self.sender().setEnabled(True)
+            self.sender().setText("Guardar")       
+    
         
+        print(f"{cod}-{nom}\n-{nivel}\n-{tipo_costo}")
+ 
+    def cargar_datos_plantillamaestro(self):
+        registros = self.controller.obtener_plantilla_maestro()
+        self.tablaplanilla.setRowCount(len(registros))
+    
+        # Añadimos 'id_pk' para recibir el primer valor (id_plantilla_maestro)
+        for row_idx, (id_db, desc, cod, nivel, tipo_costo) in enumerate(registros):            
+            # 1. Item Descripción
+            item_desc = QTableWidgetItem(str(desc).upper())
+            
+            # 2. Item Código
+            item_custom = QTableWidgetItem(str(cod).upper())
+            item_custom.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+            print(nivel, type(nivel))
+            
+            # Convertir a string nivel y tipo_costo por si vienen como int de la DB
+            nivel=self.controller.encontrar_nivel_id_db(nivel)
+            item_nivel = QTableWidgetItem(str(nivel))
+            item_nivel.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+            print(nivel, type(nivel))
+
+            tipo_costo = self.controller.encontrar_tipocosto_id_db(tipo_costo)
+            item_tipo_costo = QTableWidgetItem(str(tipo_costo))
+            item_tipo_costo.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+            
+            # 3. Icono edición
+            icono_custom = QPushButton("⚙️")
+            icono_custom.setCursor(Qt.CursorShape.PointingHandCursor)
+
+            
+            # Asignar a la tabla
+            self.tablaplanilla.setCellWidget(row_idx, 0, icono_custom)
+            self.tablaplanilla.setItem(row_idx, 1, item_custom)
+            self.tablaplanilla.setItem(row_idx, 2, item_desc)
+            self.tablaplanilla.setItem(row_idx, 3, item_nivel)
+            self.tablaplanilla.setItem(row_idx, 4, item_tipo_costo)
+
+            
+            

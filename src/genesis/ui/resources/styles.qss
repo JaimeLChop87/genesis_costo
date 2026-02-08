@@ -184,11 +184,11 @@ QHeaderView::section {
 /* Estilo general de la tabla */
 #TablaRegistros {
     background-color: #ffffff;
-    border: 1px solid #dcdcdc;
+    border: 1px solid #dcdcdc59;
     border-radius: 10px;
     gridline-color: transparent; /* Mantiene la rejilla invisible */
     font-family: "Segoe UI", sans-serif;
-    font-size: 13px;
+    font-size: 10px;
     color: #333333;
     outline: none; /* Quita el borde punteado al hacer clic */
 }

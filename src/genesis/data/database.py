@@ -97,22 +97,43 @@ class DatabaseMaestro:
 
     def create_table_nivelestructuramaestro(self):
         with self.get_connection() as conn:
+            # 1. Crear la tabla
             conn.execute('''
                 CREATE TABLE IF NOT EXISTS nivelestructuramaestro (
                     id_nivel_estr INTEGER PRIMARY KEY AUTOINCREMENT,
                     descripcion_nivel VARCHAR(10) NOT NULL CHECK (
-                    descripcion_nivel IN ('Nivel - 1', 'Nivel - 2', 'Nivel - 3', 'Nivel - 4', 'Nivel - 5')
+                        descripcion_nivel IN ('Nivel - 1', 'Nivel - 2', 'Nivel - 3', 'Nivel - 4', 'Nivel - 5')
                     ),
                     cod_nivel CHAR(3) NOT NULL CHECK (
                         cod_nivel IN ('N-1', 'N-2', 'N-3', 'N-4', 'N-5')
                     ),
                     valor_nivel INTEGER NOT NULL CHECK (
-                    valor_nivel >= 1 AND valor_nivel <= 5
+                        valor_nivel >= 1 AND valor_nivel <= 5
                     ),
                     UNIQUE(cod_nivel),
                     UNIQUE(valor_nivel)
-)
-                ''')    
+                )
+            ''')
+            
+            # 2. Verificar si la tabla está vacía
+            cursor = conn.execute("SELECT COUNT(*) FROM nivelestructuramaestro")
+            count = cursor.fetchone()[0]
+            
+            # 3. Si está vacía, insertar los valores por defecto
+            if count == 0:
+                niveles = [
+                    ('Nivel - 1', 'N-1', 1),
+                    ('Nivel - 2', 'N-2', 2),
+                    ('Nivel - 3', 'N-3', 3),
+                    ('Nivel - 4', 'N-4', 4),
+                    ('Nivel - 5', 'N-5', 5)
+                ]
+                conn.executemany('''
+                    INSERT INTO nivelestructuramaestro (descripcion_nivel, cod_nivel, valor_nivel)
+                    VALUES (?, ?, ?)
+                ''', niveles)
+                conn.commit()
+                print("Datos iniciales de niveles insertados correctamente.")
 
     def create_table_tipocosto(self):
         with self.get_connection() as conn:
@@ -131,7 +152,7 @@ class DatabaseMaestro:
                     CREATE TABLE IF NOT EXISTS plantillamaestro (
                     id_plantilla_maestro INTEGER PRIMARY KEY AUTOINCREMENT,
                     descripcion_plantilla_maestro TEXT NOT NULL UNIQUE 
-                        CHECK(length(descripcion_plantilla_maestro) <= 80),
+                        CHECK(length(descripcion_plantilla_maestro) <= 100),
                     cod_plantilla_maestro TEXT NOT NULL UNIQUE 
                         CHECK(length(cod_plantilla_maestro) <= 5),
                     nivel_jerarquia INTEGER 
@@ -145,9 +166,6 @@ class DatabaseMaestro:
                         ON DELETE SET NULL
                 )
             ''')
-
-
-
 
 
 Pruebadb = DatabaseMaestro()
