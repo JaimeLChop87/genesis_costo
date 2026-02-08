@@ -17,7 +17,9 @@ class DatabaseMaestro:
         
         # crear tabla usuario si no existe
         self.create_table_user()
+        self.create_table_nivelestructuramaestro()
         self.create_table_tipocosto()
+        self.create_table_plantillamaestro()
         
     def get_connection(self):
         
@@ -34,7 +36,7 @@ class DatabaseMaestro:
         with self.get_connection() as conn:
             conn.execute('''
                 CREATE TABLE IF NOT EXISTS users (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    id_user INTEGER PRIMARY KEY AUTOINCREMENT,
                     username TEXT NOT NULL UNIQUE,
                     email TEXT NOT NULL UNIQUE,
                     password_hash TEXT NOT NULL,
@@ -93,16 +95,59 @@ class DatabaseMaestro:
                 print("El usuario o email ya existe.")
                 return False
 
+    def create_table_nivelestructuramaestro(self):
+        with self.get_connection() as conn:
+            conn.execute('''
+                CREATE TABLE IF NOT EXISTS nivelestructuramaestro (
+                    id_nivel_estr INTEGER PRIMARY KEY AUTOINCREMENT,
+                    descripcion_nivel VARCHAR(10) NOT NULL CHECK (
+                    descripcion_nivel IN ('Nivel - 1', 'Nivel - 2', 'Nivel - 3', 'Nivel - 4', 'Nivel - 5')
+                    ),
+                    cod_nivel CHAR(3) NOT NULL CHECK (
+                        cod_nivel IN ('N-1', 'N-2', 'N-3', 'N-4', 'N-5')
+                    ),
+                    valor_nivel INTEGER NOT NULL CHECK (
+                    valor_nivel >= 1 AND valor_nivel <= 5
+                    ),
+                    UNIQUE(cod_nivel),
+                    UNIQUE(valor_nivel)
+)
+                ''')    
+
     def create_table_tipocosto(self):
         with self.get_connection() as conn:
             conn.execute('''
                 CREATE TABLE IF NOT EXISTS tipocosto (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    id_tipo_costo INTEGER PRIMARY KEY AUTOINCREMENT,
                     descripcion_tipo_costo TEXT NOT NULL UNIQUE CHECK(length(descripcion_tipo_costo) <= 50),
                     cod_tipo_costo TEXT NOT NULL UNIQUE CHECK(length(cod_tipo_costo) <= 4),
                     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
                 )
             ''')
+    
+    def create_table_plantillamaestro(self):
+        with self.get_connection() as conn:
+            conn.execute('''
+                    CREATE TABLE IF NOT EXISTS plantillamaestro (
+                    id_plantilla_maestro INTEGER PRIMARY KEY AUTOINCREMENT,
+                    descripcion_plantilla_maestro TEXT NOT NULL UNIQUE 
+                        CHECK(length(descripcion_plantilla_maestro) <= 80),
+                    cod_plantilla_maestro TEXT NOT NULL UNIQUE 
+                        CHECK(length(cod_plantilla_maestro) <= 5),
+                    nivel_jerarquia INTEGER 
+                        CHECK (nivel_jerarquia >= 1 AND nivel_jerarquia <= 5),
+                    estado BOOLEAN DEFAULT TRUE,
+                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    id_tipo_costo INTEGER,
+                    CONSTRAINT fk_id_tipo_costo 
+                        FOREIGN KEY (id_tipo_costo) 
+                        REFERENCES tipocosto(id_tipo_costo)
+                        ON DELETE SET NULL
+                )
+            ''')
+
+
+
 
 
 Pruebadb = DatabaseMaestro()

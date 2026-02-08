@@ -223,3 +223,28 @@ QHeaderView::section {
     font-weight: bold;
     color: #00695c;
 }
+
+
+
+QComboBox {
+    background-color: rgb(228, 217, 217);
+    border: 1px solid #CACACA;
+    border-radius: 4px;
+    padding: 4px 10px;
+    color: #004d40;
+    font-size: 14px;
+}
+
+QComboBox::drop-down {
+    border: none;
+    width: 30px;
+}
+
+/* Estilo de la lista que se despliega */
+QComboBox QAbstractItemView {
+    background-color: white;
+    border: 1px solid #004d40;
+    selection-background-color: #0b9fbd;
+    selection-color: white;
+    outline: none;
+}

@@ -5,7 +5,7 @@ from PyQt6.QtWidgets import (QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
 from PyQt6.QtCore import Qt, QSize, QEvent
 from PyQt6.QtGui import QPixmap, QIcon
 
-from genesis.ui.modules.maestro_crisol.maestro_views import TipoCostoView
+from genesis.ui.modules.maestro_crisol.maestro_views import TipoCostoView, PlantillaMaestraViews
 
 
 class DashboardView(QMainWindow):
@@ -214,7 +214,7 @@ class DashboardView(QMainWindow):
 
     def open_new_window(self, window_title):
         """Crea la ventana, la añade al stack y la enlista en las pestañas"""
-        
+
         # 1. Verificar si ya está abierta
         for i in range(self.tabs_manager.count()):
             if self.tabs_manager.tabText(i) == window_title:
@@ -223,13 +223,13 @@ class DashboardView(QMainWindow):
                 return
 
         # 2. Crear el contenido de la ventana
-        # Ejemplo: if window_title == "Tipos Costo": new_widget = VentanaCostos()
         new_window_widget = QWidget() 
         layout = QVBoxLayout(new_window_widget)
         layout.addWidget(QLabel(f"Contenido de: {window_title}")) 
         if window_title == "Tipos Costo":
             new_window_widget = TipoCostoView()
-        
+        elif window_title == "Plantilla Maestra":
+            new_window_widget = PlantillaMaestraViews()
         
         # 3. Registrar en el sistema
         idx = self.work_space.addWidget(new_window_widget)

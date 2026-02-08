@@ -1,23 +1,32 @@
 from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLineEdit, 
                              QPushButton, QTableWidget, QTableWidgetItem, QLabel, QFrame, QHeaderView,
-                             QMessageBox, QDialog)
+                             QMessageBox, QDialog, QComboBox)
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QGuiApplication
 
 from genesis.ui.modules.maestro_crisol.maestro_controller import TipoCostoController
+from genesis.ui.modules.maestro_crisol.maestro_views_edit import GenericEditDialog
 
-class TipoCostoView(QWidget):
+class GeneralWidget():
+    def __init__(self):
+        self.init_line_divider()
+        
+    def init_line_divider(self):
+        """Crea un divisor de línea horizontal."""
+        self.linea_divisora = QFrame()
+        self.linea_divisora.setFrameShape(QFrame.Shape.HLine) 
+        self.linea_divisora.setFrameShadow(QFrame.Shadow.Sunken) 
+        self.linea_divisora.setObjectName("SeparadorHorizontal")   
+
+class TipoCostoView(QWidget, GeneralWidget):
     def __init__(self):
         super().__init__()
         self.controller = TipoCostoController()
-        self.init_ui()
+        self.init_ui_tipocosto()
         self.cargar_datos()
 
-    def init_ui(self):
+    def init_ui_tipocosto(self):
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(20, 20, 20, 20)
-        layout.setSpacing(15)
-        
         self.init_form_card()
         self.init_line_divider()
         self.init_table_registros()
@@ -48,7 +57,7 @@ class TipoCostoView(QWidget):
         
         self.tabla.setColumnWidth(0, 50)   
         self.tabla.setColumnWidth(1, 80) 
-        self.tabla.setColumnWidth(2, 200) 
+        self.tabla.setColumnWidth(2, 300) 
         
         header.setSectionResizeMode(0, QHeaderView.ResizeMode.Fixed)
         header.setSectionResizeMode(1, QHeaderView.ResizeMode.Fixed)
@@ -93,13 +102,6 @@ class TipoCostoView(QWidget):
         form_layout.addWidget(self.txt_codigo)
         form_layout.addWidget(btn_guardar, alignment=Qt.AlignmentFlag.AlignLeft)
 
-    def init_line_divider(self):
-        """Crea un divisor de línea horizontal."""
-        self.linea_divisora = QFrame()
-        self.linea_divisora.setFrameShape(QFrame.Shape.HLine) 
-        self.linea_divisora.setFrameShadow(QFrame.Shadow.Sunken) 
-        self.linea_divisora.setObjectName("SeparadorHorizontal")
-
     def handle_guardar(self):
         # 1. obtener datos del formulario y limpiar espacios
         cod = self.txt_codigo.text().strip()
@@ -136,28 +138,23 @@ class TipoCostoView(QWidget):
             self.sender().setText("Guardar")
 
     def cargar_datos(self):
-        registros = self.controller.obtener_todos()
+        registros = self.controller.obtener_tipocosto()
         self.tabla.setRowCount(len(registros))
         
-        for row_idx, ( cod, desc) in enumerate(registros):
-            # 1. Item ID (con ceros a la izquierda)
-            #item_id = QTableWidgetItem(str(id_db).zfill(4))
-            #item_id.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-            
-            # 2. Item Descripción (Mayúsculas para mantener el estilo de la imagen)
+        for row_idx, ( id_db, cod, desc) in enumerate(registros):            
+            # 1. Item Descripción (Mayúsculas para mantener el estilo de la imagen)
             item_desc = QTableWidgetItem(desc.upper())
-            
-            # 3. Item Id Custom (Código + Icono)
+            # 2. Item Id Custom (Código + Icono)
             item_custom = QTableWidgetItem(cod.upper())
             item_custom.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
             
-            # icono herramienta edisión (solo visual, sin funcionalidad en esta etapa)
+            # 3. icono herramienta edisión
             icono_custom = QPushButton("⚙️")
             icono_custom.setCursor(Qt.CursorShape.PointingHandCursor)
             icono_custom.setToolTip("Editar este registro")
             icono_custom.setStyleSheet("background: transparent; border: none; font-size: 14px;")
+            icono_custom.clicked.connect(lambda checked, i=id_db, c=cod, d=desc: self.abrir_editor(i, c, d))
             
-            icono_custom.clicked.connect(lambda checked, c=cod, d=desc: self.abrir_editor( c, d))
             # Asignar a la tabla
             # self.tabla.setItem(row_idx, 0, item_id)
             self.tabla.setItem(row_idx, 2, item_desc)
@@ -198,62 +195,190 @@ class TipoCostoView(QWidget):
         # Enviamos al portapapeles del sistema
         QGuiApplication.clipboard().setText(texto_final)
 
-    def abrir_editor(self, cod_actual, desc_actual):
+    def abrir_editor(self, id_db, cod_actual, desc_actual):
         """Abre un diálogo para editar código y descripción."""
-        dialogo = QDialog(self)
-        dialogo.setWindowTitle("Editar Tipo de Costo")
-        dialogo.setFixedWidth(350)
-        
-        layout_edit = QVBoxLayout(dialogo)
-        layout_edit.setSpacing(10)
+        # 1. Definimos qué campos queremos editar en este contexto
+        campos = {
+            "Código": cod_actual,
+            "Descripción": desc_actual
+        }
 
-        # Campos de entrada
-        lbl_cod = QLabel("Código:")
-        input_cod = QLineEdit(cod_actual)
-        input_cod.setMaxLength(4)
-        input_cod.setObjectName("InputForm")
-        
-        lbl_desc = QLabel("Descripción:")
-        input_desc = QLineEdit(desc_actual)
-        input_desc.setMaxLength(40)
-        input_desc.setObjectName("InputForm")
+        # 2. Instanciamos el diálogo genérico
+        dialogo = GenericEditDialog(self, title="Editar Tipo de Costo", fields=campos)
 
-        # Botones de acción
-        btn_layout = QHBoxLayout()
-        btn_guardar = QPushButton("Actualizar")
+        # 3. Si el usuario presiona "Actualizar"
+        if dialogo.exec() == QDialog.DialogCode.Accepted:
+            nuevos_datos = dialogo.get_values()
+            
+            # 4. Extraemos los valores por nombre de campo
+            nuevo_cod = nuevos_datos["Código"]
+            nueva_desc = nuevos_datos["Descripción"]
+
+            # 5. Llamamos al controlador
+            exito, mensaje = self.controller.actualizar_tipo_costo(id_db, nuevo_cod, nueva_desc)
+            
+            if exito:
+                # Opcional: mostrar mensaje de éxito
+                # QMessageBox.information(self, "Éxito", mensaje)
+                self.cargar_datos() # Refrescar la tabla para ver los cambios
+            else:
+                # Mostrar el error (por ejemplo, si el código ya existe)
+                QMessageBox.critical(self, "Error de Actualización", mensaje)
+
+class PlantillaMaestraViews(QWidget, GeneralWidget):
+    # constructor
+    def __init__(self):
+        super().__init__()
+        self.controller = TipoCostoController()
+        self.init_ui_plantilla_maestro()
+        self.init_line_divider()
+        self.init_table_resgistroplanillamaestro()
+    
+    def init_ui_plantilla_maestro(self):
+        layout = QVBoxLayout(self)
+        
+        self.init_form_card_plantillaMaestro()
+        self.init_line_divider()
+        self.init_table_resgistroplanillamaestro()
+        
+        layout.addWidget(self.form_card)
+        layout.addWidget(self.linea_divisora)
+        layout.addWidget(self.tabla)
+        
+        layout.addStretch()
+        
+    def init_form_card_plantillaMaestro(self):
+        """Inicializa el formulario para generar plantilla maestra."""
+        # 1.0 --- FORMULARIO - almacenar platilla maestra ---
+            # 1.1 frame del formulario
+        self.form_card = QFrame()
+        self.form_card.setObjectName("FormCard") 
+        form_layout = QVBoxLayout(self.form_card)
+            # 1.2 campos del formulario descripción tipo costo
+        self.txt_descripcion_form = QLabel('Descripción plantilla maestra')
+        self.txt_descripcion_form.setObjectName("LabelForm")
+        self.txt_descripcion = QLineEdit()
+        self.txt_descripcion.setPlaceholderText("Ejemplo: Costos Directos Proyecto")
+        self.txt_descripcion.setObjectName("InputForm")
+        self.txt_descripcion.setFixedWidth(400)
+        self.txt_descripcion.setMaxLength(40)
+            # 1.3 campo del formulario código tipo costo
+        self.txt_codigo_form = QLabel('Código plantilla maestra')
+        self.txt_codigo_form.setObjectName("LabelForm")
+        self.txt_codigo = QLineEdit()
+        self.txt_codigo.setPlaceholderText("01-CDP")
+        self.txt_codigo.setObjectName("InputForm")
+        self.txt_codigo.setFixedWidth(80)
+        self.txt_codigo.setMaxLength(8)
+
+        self.combobox_nivel_estructura()
+
+        #self.combobox_nivelplantila.setObjectName("list_box")
+        self.combobox_tipocosto()  
+        
+            # 1.6 botón guardar
+        btn_guardar = QPushButton("Guardar")
         btn_guardar.setObjectName("BtnGuardar")
         btn_guardar.setCursor(Qt.CursorShape.PointingHandCursor)
-        # Para que herede tus estilos
-        btn_cancelar = QPushButton("Cancelar")
-        btn_cancelar.setCursor(Qt.CursorShape.PointingHandCursor)
+        btn_guardar.setFixedWidth(100)
+        btn_guardar.clicked.connect(self.handle_guardar_platillamaestro)
+
+        form_layout.addWidget(self.txt_descripcion_form)
+        form_layout.addWidget(self.txt_descripcion)
+        form_layout.addWidget(self.txt_codigo_form)
+        form_layout.addWidget(self.txt_codigo)
+        form_layout.addWidget(self.txt_nivel)
+        form_layout.addWidget(self.combobox_nivelplantila)
+        form_layout.addWidget(self.txt_tipo_costo)
+        form_layout.addWidget(self.combobox_tipo_costo)
+        form_layout.addWidget(btn_guardar, alignment=Qt.AlignmentFlag.AlignLeft)  
+    
+    def combobox_tipocosto(self):
+            # 1.5 selccion niveles jerarquia agrupadores de la palntilla maestra
+        self.txt_tipo_costo = QLabel('Tipo Costo')
+        self.txt_tipo_costo.setObjectName("LabelForm")
+        self.combobox_tipo_costo=QComboBox()
         
-        btn_layout.addWidget(btn_guardar)
-        btn_layout.addWidget(btn_cancelar)
+        self.combobox_tipo_costo.clear()
+        self.combobox_tipo_costo.addItem("Seleccione un tipo...", None)
+        
+        try:
+            if not hasattr(self, 'tipo_costo_controller'):
+                self.tipo_costo_controller = TipoCostoController()
 
-        layout_edit.addWidget(lbl_cod)
-        layout_edit.addWidget(input_cod)
-        layout_edit.addWidget(lbl_desc)
-        layout_edit.addWidget(input_desc)
-        layout_edit.addLayout(btn_layout)
+            tipo_costos = self.tipo_costo_controller.obtener_tipocosto()
 
-        # Lógica de botones
-        btn_cancelar.clicked.connect(dialogo.reject)
+            if not tipo_costos:
+                return
 
-        def procesar_actualizacion():
-            # Aquí va la lógica para llamar a tu controlador
-            nuevo_cod = input_cod.text().strip()
-            nueva_desc = input_desc.text().strip()
+            opciones = [f"{tc[2]} - {tc[1]}" for tc in tipo_costos]
             
-            if nuevo_cod and nueva_desc:
-                # Nota: Aquí deberías pasar también el ID si lo tienes disponible
-                # exito, mensaje = self.controller.actualizar_tipo_costo(cod_actual, nuevo_cod, nueva_desc)
-                print(f"Enviando actualización: {nuevo_cod} - {nueva_desc}")
-                dialogo.accept() # Cierra el diálogo con éxito
-                self.cargar_datos() # Refresca la tabla
-            else:
-                QMessageBox.warning(dialogo, "Error", "Los campos no pueden estar vacíos.")
+            # 3. Bloquear señales para evitar disparar eventos innecesarios durante la carga
+            self.combobox_tipo_costo.blockSignals(True)
+            self.combobox_tipo_costo.addItems(opciones)
+            self.combobox_tipo_costo.blockSignals(False)
+            
+            self.combobox_tipo_costo.setFixedWidth(200)
+            
+            return self.combobox_tipo_costo
+            
+        except Exception as e:
+            print(f"Error al cargar tipos de costo: {e}")
+                
+    def combobox_nivel_estructura(self):   
+            # 1.4 selccion niveles jerarquia agrupadores de la palntilla maestra
+        self.txt_nivel = QLabel('Niveles - Jerarquias')
+        self.txt_nivel.setObjectName("LabelForm")
+        self.combobox_nivelplantila=QComboBox()
+        #self.combobox_nivelplantila.setObjectName("list_box")
+        self.combobox_nivelplantila.addItems(['Nivel - 1',
+                                              'Nivel - 2',
+                                              'Nivel - 3',
+                                              'Nivel - 4',
+                                              'Nivel - 5'])     
+        self.combobox_nivelplantila.setFixedWidth(150)
+        return self.combobox_nivelplantila
 
-        btn_guardar.clicked.connect(procesar_actualizacion)
-
-        # --- LÍNEA CLAVE QUE FALTABA ---
-        dialogo.exec() 
+    def init_table_resgistroplanillamaestro (self):
+        """ Inicializa la tabla resultado busqueda todos las plantillas maestros."""
+                # --- TABLA DE REGISTROS ---
+        self.tabla = QTableWidget()
+        self.tabla.setColumnCount(5)
+        self.tabla.setObjectName("TablaRegistros")
+        self.tabla.setHorizontalHeaderLabels(["edit","Código","Descripcion PlanillaMaestro","Nivel","Tipo costo"])
+    # --- PERMITIR SELECCIÓN Y COPIADO ---
+        # Permite seleccionar celdas individuales o filas completas
+        self.tabla.setSelectionMode(QTableWidget.SelectionMode.ExtendedSelection)
+        self.tabla.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows) # Selecciona filas completas
+        self.tabla.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
+        # 2. Política de Foco (CAMBIO CLAVE)
+        # Cambia NoFocus por StrongFocus o elimina la línea
+        self.tabla.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
+        self.tabla.setTabKeyNavigation(True)
+        
+        # configuracion de ancho de columnas específicas
+        header = self.tabla.horizontalHeader()
+        
+        self.tabla.setColumnWidth(0, 50)   
+        self.tabla.setColumnWidth(1, 80) 
+        self.tabla.setColumnWidth(2, 300) 
+        self.tabla.setColumnWidth(3, 100)
+        self.tabla.setColumnWidth(4, 100)
+        
+        header.setSectionResizeMode(0, QHeaderView.ResizeMode.Fixed)
+        header.setSectionResizeMode(1, QHeaderView.ResizeMode.Fixed)
+        header.setSectionResizeMode(2, QHeaderView.ResizeMode.Fixed)
+        header.setSectionResizeMode(3, QHeaderView.ResizeMode.Fixed)
+        header.setSectionResizeMode(4, QHeaderView.ResizeMode.Fixed)
+        # Estética
+        self.tabla.verticalHeader().setVisible(False)
+        self.tabla.setShowGrid(False)
+        
+    def handle_guardar_platillamaestro (self):
+        cod = self.txt_codigo.text().strip()
+        desc = self.txt_descripcion.text().strip()
+        nivel = self.combobox_nivelplantila.currentData()
+        t_costo = self.combobox_tipo_costo.currentData()
+        
+        print(f"{cod}-{desc}\n-{nivel}\n-{t_costo}")
+        
