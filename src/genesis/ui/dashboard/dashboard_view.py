@@ -5,7 +5,7 @@ from PyQt6.QtWidgets import (QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
 from PyQt6.QtCore import Qt, QSize, QEvent
 from PyQt6.QtGui import QPixmap, QIcon
 
-from genesis.ui.modules.maestro_crisol.maestro_views import TipoCostoView, PlantillaMaestraViews
+from genesis.ui.modules.maestro_crisol.maestro_views import TipoCostoView, PlantillaMaestraViews, EstructuraMaestroViews
 
 
 class DashboardView(QMainWindow):
@@ -230,6 +230,9 @@ class DashboardView(QMainWindow):
             new_window_widget = TipoCostoView()
         elif window_title == "Plantilla Maestra":
             new_window_widget = PlantillaMaestraViews()
+        elif window_title == "Detalle Estructura":
+            new_window_widget = EstructuraMaestroViews()
+
         
         # 3. Registrar en el sistema
         idx = self.work_space.addWidget(new_window_widget)

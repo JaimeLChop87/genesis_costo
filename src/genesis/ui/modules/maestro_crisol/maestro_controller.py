@@ -53,6 +53,11 @@ class TipoCostoController:
         except Exception as e:
             return False, f"Error inesperado: {str(e)}"
 
+class PlantillaMaestroController(TipoCostoController):
+
+    def __init__(self):
+        self.db_manager = DatabaseMaestro()
+    
     def guardar_plantilla_maestro(self, nom, cod, tipo_costo, nivel):
         """ valida la informacion en formulario inserta nuevo registro"""
 
@@ -121,6 +126,42 @@ class TipoCostoController:
             print(f"Error consultando nivel: {e}")
             return "Error"     
 
+    def encontrar_iddb_nivel(self, cod_nivel):
+        """Consulta el registro equivalente id_db en tabla"""
+        try:
+            with sqlite3.connect(self.db_manager.db_path) as conn:
+                cursor = conn.cursor()
+                query = "SELECT id_nivel_estr FROM nivelestructuramaestro WHERE cod_nivel = ?"
+                cursor.execute(query, (cod_nivel,))
+                
+                resultado = cursor.fetchone() 
+                
+                # Si encontró algo, devuelve el primer elemento de la tupla, 
+                # de lo contrario devuelve un texto por defecto.
+                return resultado[0]
+                
+        except Exception as e:
+            print(f"Error consultando nivel: {e}")
+            return "Error"
+
+    def encontrar_iddb_t_costo(self, t_costo):
+        """Consulta el registro equivalente id_db en tabla"""
+        try:
+            with sqlite3.connect(self.db_manager.db_path) as conn:
+                cursor = conn.cursor()
+                query = "SELECT id_tipo_costo FROM tipocosto WHERE cod_tipo_costo = ?"
+                cursor.execute(query, (t_costo,))
+                
+                resultado = cursor.fetchone() 
+                
+                # Si encontró algo, devuelve el primer elemento de la tupla, 
+                # de lo contrario devuelve un texto por defecto.
+                return resultado[0]
+                
+        except Exception as e:
+            print(f"Error consultando nivel: {e}")
+            return "Error"  
+    
     def encontrar_tipocosto_id_db(self, id_db):
         """Consulta el registro equivalente id_db en tabla"""
         try:
@@ -138,6 +179,49 @@ class TipoCostoController:
         except Exception as e:
             print(f"Error consultando nivel: {e}")
             return "Error"  
+
+    def actualizar_plantilla_maestro(self, id_registro, nuevo_cod, nueva_desc, nuevo_nivel,nuevo_t_costo):
+        """Actualiza un registro validando restricciones UNIQUE tb_plantillamaestro."""
+        try:
+            with self.db_manager.get_connection() as conn:
+                conn.execute('''
+                    UPDATE plantillamaestro 
+                    SET cod_plantilla_maestro = ?, descripcion_plantilla_maestro = ?, nivel_jerarquia = ?, id_tipo_costo = ?
+                    WHERE id_plantilla_maestro = ?
+                ''', (nuevo_cod.upper(), nueva_desc.upper(), nuevo_nivel, nuevo_t_costo, id_registro), )
+                conn.commit()
+                return True, "Registro actualizado correctamente."
+        except sqlite3.IntegrityError as e:
+            if "UNIQUE" in str(e):
+                return False, "Error: El código o la descripción ya existen en otro registro."
+            return False, f"Error de integridad: {str(e)}"
+        except Exception as e:
+            return False, f"Error inesperado: {str(e)}"
+
+class EstructuraMaestroController(PlantillaMaestroController):
+    
+    def __init__(self):
+        self.db_manager = DatabaseMaestro()
+
+    def encontrar_nivel_jerarquia_palntilla_maestro(self, name_plantilla):
+        """Consulta el registro equivalente id_db en tabla"""
+        try:
+            with sqlite3.connect(self.db_manager.db_path) as conn:
+                cursor = conn.cursor()
+                query = "SELECT nivel_jerarquia FROM plantillamaestro WHERE descripcion_plantilla_maestro = ?"
+                cursor.execute(query, (name_plantilla,))
+                
+                resultado = cursor.fetchone() 
+                
+                # Si encontró algo, devuelve el primer elemento de la tupla, 
+                # de lo contrario devuelve un texto por defecto.
+                return resultado[0]
+                
+        except Exception as e:
+            print(f"Error consultando nivel: {e}")
+            return "Error"
+                
+
 
 
 class Comunicador(QObject):

@@ -166,6 +166,27 @@ class DatabaseMaestro:
                         ON DELETE SET NULL
                 )
             ''')
+    
+    def create_table_nivel_patron_cod(self):
+        with self.get_connection() as conn:
+            conn.execute('''
+                CREATE TABLE IF NOT EXISTS patroncodi (
+                    id_patron_nivel INTEGER PRIMARY KEY AUTOINCREMENT,
+                    patron_nivel TEXT NOT NULL UNIQUE CHECK(length(patron_nivel) <= 5),
+                    estado BOOLEAN DEFAULT TRUE,
+                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,}
+                    id_plantilla_maestro INTEGER,
+                    CONSTRAINT fk_id_plantilla_maestro 
+                        FOREIGN KEY (id_plantilla_maestro) 
+                        REFERENCES plantillamaestro(id_plantilla_maestro)
+                        ON DELETE CASCADE,
+                    id_nivel_estr INTEGER,
+                    CONSTRAINT fk_id_nivel_estr
+                        FOREIGN KEY (id_nivel_estr) 
+                        REFERENCES nivelestructuramaestro(id_nivel_estr)
+                        ON DELETE CASCADE
+                )
+            ''')
 
 
 Pruebadb = DatabaseMaestro()

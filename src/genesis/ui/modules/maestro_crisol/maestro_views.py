@@ -1,12 +1,12 @@
-from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLineEdit, 
+from PyQt6.QtWidgets import (QSizePolicy, QWidget, QVBoxLayout, QHBoxLayout, QLineEdit, 
                              QPushButton, QTableWidget, QTableWidgetItem, QLabel, QFrame, QHeaderView,
                              QMessageBox, QDialog, QComboBox)
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QGuiApplication
 
-from genesis.ui.modules.maestro_crisol.maestro_controller import TipoCostoController
+from genesis.ui.modules.maestro_crisol.maestro_controller import TipoCostoController , PlantillaMaestroController, EstructuraMaestroController
 from genesis.ui.modules.maestro_crisol.maestro_controller import comun
-from genesis.ui.modules.maestro_crisol.maestro_views_edit import GenericEditDialog
+from genesis.ui.modules.maestro_crisol.maestro_views_edit import GenericEditDialog, EditarPlantillaMaestroDialog
 
 class GeneralWidget():
     def __init__(self):
@@ -228,10 +228,9 @@ class TipoCostoView(QWidget, GeneralWidget):
                 QMessageBox.critical(self, "Error de Actualización", mensaje)
 
 class PlantillaMaestraViews(QWidget, GeneralWidget):
-    # constructor
     def __init__(self):
         super().__init__()
-        self.controller = TipoCostoController()
+        self.controller = PlantillaMaestroController()
         self.init_ui_plantilla_maestro()
         self.cargar_datos_plantillamaestro()
         
@@ -297,7 +296,7 @@ class PlantillaMaestraViews(QWidget, GeneralWidget):
         form_layout.addWidget(btn_guardar, alignment=Qt.AlignmentFlag.AlignLeft)  
     
     def combobox_tipocosto(self):
-            # 1.5 selccion niveles jerarquia agrupadores de la palntilla maestra
+            # 1 selccion niveles jerarquia agrupadores de la palntilla maestra
         self.txt_tipo_costo = QLabel('Tipo Costo')
         self.txt_tipo_costo.setObjectName("LabelForm")
         self.combobox_tipo_costo=QComboBox()
@@ -408,6 +407,7 @@ class PlantillaMaestraViews(QWidget, GeneralWidget):
         print(f"{cod}-{nom}\n-{nivel}\n-{tipo_costo}")
  
     def cargar_datos_plantillamaestro(self):
+        """consulta y carga registros en pantalla de los maestros creados"""
         registros = self.controller.obtener_plantilla_maestro()
         self.tablaplanilla.setRowCount(len(registros))
     
@@ -434,6 +434,9 @@ class PlantillaMaestraViews(QWidget, GeneralWidget):
             # 3. Icono edición
             icono_custom = QPushButton("⚙️")
             icono_custom.setCursor(Qt.CursorShape.PointingHandCursor)
+            icono_custom.setToolTip("Editar registro")
+            icono_custom.setStyleSheet("background: transparent; border: none; font-size: 14px;")
+            icono_custom.clicked.connect(lambda checked, i=id_db, c=cod, d=desc, n=nivel, tc=tipo_costo: self.abrir_editor_plantillamaestro(i, c, d,n,tc))            
 
             
             # Asignar a la tabla
@@ -443,5 +446,192 @@ class PlantillaMaestraViews(QWidget, GeneralWidget):
             self.tablaplanilla.setItem(row_idx, 3, item_nivel)
             self.tablaplanilla.setItem(row_idx, 4, item_tipo_costo)
 
+    def abrir_editor_plantillamaestro(self, id_db, cod_actual, desc_actual, nivel_actual, t_costo_actual):
+    # 1. Obtener los IDs reales para posicionar los ComboBox correctamente
+        # (Suponiendo que tus métodos del controlador devuelven el ID numérico)
+        id_nivel = self.controller.encontrar_iddb_nivel(nivel_actual)
+        id_t_costo = self.controller.encontrar_iddb_t_costo(t_costo_actual)
+
+        # 2. Obtener lista de Tipos de Costo para llenar el combo
+        tipos_db = self.controller.obtener_tipocosto()
+        # Mapeamos a [(ID, "Código - Descripción"), ...]
+        opciones_tc = [(tc[0], f"{tc[2]} - {tc[1]}") for tc in tipos_db]
+
+        # 3. Lanzar el diálogo específico
+        dialogo = EditarPlantillaMaestroDialog(
+            self, cod_actual, desc_actual, id_nivel, id_t_costo, opciones_tc
+        )
+
+        if dialogo.exec() == QDialog.DialogCode.Accepted:
+            v = dialogo.get_datos()
             
+            # 4. Enviar al controlador
+            exito, mensaje = self.controller.actualizar_plantilla_maestro(
+                id_db, v["codigo"], v["descripcion"], v["nivel"], v["tipo_costo"]
+            )
+
+            if exito:
+                self.cargar_datos_plantillamaestro()
+                comun.tipos_actualizados.emit()
+            else:
+                QMessageBox.critical(self, "Error", mensaje)     
+
+class EstructuraMaestroViews(QWidget, GeneralWidget):
+    def __init__(self):
+        super().__init__()
+        self.controller = EstructuraMaestroController()
+        self.controller_plantilla = PlantillaMaestroController()
+
+        self.init_ui_estructuraMaestro()
+    
+    def init_ui_estructuraMaestro(self):
+        """Inicializa la interfaz para parametrizar estructura maestro."""
+        layout = QVBoxLayout(self)
+        layout.setAlignment(Qt.AlignmentFlag.AlignTop) # Mantener todo arriba
+
+        
+        # Botón para mostrar/ocultar (Toggle)
+        self.btn_ocultar_formulario()
+        
+        self.init_form_card_estructuraMaestro()
+        self.init_line_divider()
+        self.setup_combobox_plantilla()
+        # Añadimos en orden
+        layout.addWidget(self.btn_toggle_form, alignment=Qt.AlignmentFlag.AlignLeft)
+        layout.addWidget(self.txt_label_pmaestro)
+        layout.addWidget(self.combobox_pmaestro)
+        layout.addWidget(self.form_card)
+        layout.addWidget(self.linea_divisora)
+
+        layout.addStretch()
+    
+    def init_form_card_estructuraMaestro(self):
+        """Inicializa el formulario para parametrizar estructura maestro."""
+        self.form_card = QFrame()
+        self.form_card.setObjectName("FormCard") 
+        self.form_card.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Maximum)   
+        self.form_layout = QVBoxLayout(self.form_card)
+
+        # 1. PRIMERO: Creamos el contenedor y el layout de niveles
+        # Así, cuando setup_patron_nivel se ejecute, el atributo ya existe.
+        self.container_niveles = QWidget()
+        self.layout_niveles = QHBoxLayout(self.container_niveles)
+        
+        btn_guardar = QPushButton("Almacenar Patrón")
+        btn_guardar.setObjectName("BtnGuardar")
+        btn_guardar.setCursor(Qt.CursorShape.PointingHandCursor)
+        btn_guardar.setFixedWidth(120)
+        
+        label_info = QLabel(f'Ingrese patrón de código para cada nivel. d=digitos 0-9 w=letra (. -)=separadores.\nEjemplo: Patrón: "dd"="01" | Patrón: "d-wdd"="1-C22"')
+        label_info.setObjectName("LabelInform")
+
+        # 3. TERCERO: Añadimos todo al layout en el orden visual deseado
+        self.form_layout.addWidget(self.container_niveles)
+        self.form_layout.addWidget(label_info)
+        self.form_layout.addWidget(btn_guardar, alignment=Qt.AlignmentFlag.AlignLeft)
+        
+    def setup_combobox_plantilla(self):
+        """Crea y llena el combobox."""
+        self.txt_label_pmaestro = QLabel('Plantilla Maestra:')
+        self.txt_label_pmaestro.setObjectName("LabelForm")
+        
+        self.combobox_pmaestro = QComboBox()
+        self.combobox_pmaestro.setFixedWidth(320)
+        
+        # Conectamos la señal
+        self.combobox_pmaestro.currentIndexChanged.connect(self.setup_patron_nivel)
+        
+        try:
+            plantillas = self.controller_plantilla.obtener_plantilla_maestro()
+            self.combobox_pmaestro.addItem("Seleccione una plantilla...", None)
             
+            for p in plantillas:
+                self.combobox_pmaestro.addItem(str(p[1]), p[0])  
+        except Exception as e:
+            print(f"Error al cargar plantillas: {e}")
+        
+        # Ahora sí puede ejecutarse sin error
+        self.setup_patron_nivel()
+        
+    def setup_patron_nivel(self):
+        """muestra caja edicion segun el nivel, el usuario 
+        ingresa el patrón de código en cada nivel
+        Ejemplo: Nivel 1 - Patrón: 'dd'
+        Nivel 2 - Patrón: 'dd-dd'
+        Nivel 3 - Patrón: 'dd-dd-wdd'"""
+        # 1. Limpiar inputs anteriores antes de generar nuevos
+        while self.layout_niveles.count():
+            child = self.layout_niveles.takeAt(0)
+            if child.widget():
+                child.widget().deleteLater()
+            elif child.layout():
+                # Si el hijo es un layout (como tu layoutv), hay que vaciarlo también
+                self.limpiar_layout_recursivo(child.layout())
+
+        # 2. Validar selección del ComboBox
+        nombre_p = self.combobox_pmaestro.currentText()
+        id_p = self.combobox_pmaestro.currentData()
+
+        if id_p is None or nombre_p == "Seleccione una plantilla...":
+            return
+
+        # 3. Obtener nivel con manejo de errores
+        resultado_nivel = self.controller.encontrar_nivel_jerarquia_palntilla_maestro(name_plantilla=nombre_p)
+
+        # Validar que el resultado sea un número y no el string "Error" o None
+        try:
+            num_niveles = int(resultado_nivel)
+        except (ValueError, TypeError):
+            print(f"Error: El nivel devuelto no es válido: {resultado_nivel}")
+            return
+
+        # 4. Generar la interfaz dinámica
+        for i in range(num_niveles):
+            layout_v = QVBoxLayout()
+            layout_v.setAlignment(Qt.AlignmentFlag.AlignLeft)
+            
+            label = QLabel(f'Nivel {i + 1}:')
+            label.setObjectName("LabelForm")
+            
+            input_patron = QLineEdit()
+            input_patron.setPlaceholderText("dd-dd")
+            input_patron.setObjectName("InputForm")
+            input_patron.setFixedWidth(60)
+            
+            layout_v.addWidget(label)
+            layout_v.addWidget(input_patron)
+            
+            self.layout_niveles.addLayout(layout_v)
+            
+        self.layout_niveles.addStretch(1)
+
+    def limpiar_layout_recursivo(self, layout):
+        """Función auxiliar para borrar layouts anidados."""
+        while layout.count():
+            item = layout.takeAt(0)
+            widget = item.widget()
+            if widget:
+                widget.deleteLater()
+            else:
+                self.limpiar_layout_recursivo(item.layout())
+
+    def btn_ocultar_formulario(self):
+        """Oculta o muestra el formulario de configuración de patrones."""
+        self.btn_toggle_form = QPushButton(" 🔽 Ocultar Configuración de Patrones")
+        self.btn_toggle_form.setCheckable(True)
+        self.btn_toggle_form.setObjectName("BtnToggleHeader") 
+        self.btn_toggle_form.clicked.connect(self.toggle_formulario)
+
+    def toggle_formulario(self):
+            # Si el botón está chequeado, ocultamos. Si no, mostramos.
+            is_visible = self.form_card.isVisible()
+            
+            # Invertimos la visibilidad
+            self.form_card.setVisible(not is_visible)
+            
+            # Cambiamos el texto y el icono (opcional) para feedback visual
+            if not is_visible:
+                self.btn_toggle_form.setText(" 🔽 Ocultar Configuración de Patrones")
+            else:
+                self.btn_toggle_form.setText(" ▶️ Mostrar Configuración de Patrones")
+        

@@ -101,6 +101,13 @@
     margin-bottom: 8px;
 }
 
+#LabelInform {
+    color: #004d40;
+    font-size: 10px;
+    font-weight: lighter;
+    margin-bottom: 8px;
+}
+
 #LoginInput, #InputForm {
     background-color: rgb(228, 217, 217);
     border: 1px solid #CACACA;
@@ -186,7 +193,6 @@ QHeaderView::section {
     background-color: #ffffff;
     border: 1px solid #dcdcdc59;
     border-radius: 10px;
-    gridline-color: transparent; /* Mantiene la rejilla invisible */
     font-family: "Segoe UI", sans-serif;
     font-size: 10px;
     color: #333333;
@@ -244,7 +250,5 @@ QComboBox::drop-down {
 QComboBox QAbstractItemView {
     background-color: white;
     border: 1px solid #004d40;
-    selection-background-color: #0b9fbd;
-    selection-color: white;
     outline: none;
 }
